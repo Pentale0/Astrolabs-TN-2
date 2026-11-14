@@ -1,0 +1,6 @@
+{
+  "name": "Vigil — Astronaut Health Monitor",
+  "description": "Mission health monitoring console for long-duration spaceflight crew: body-region diagnostics, spaceflight hazard insights, autonomous escalation guidance, and flight surgeon reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

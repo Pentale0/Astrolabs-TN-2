@@ -1,0 +1,501 @@
+{
+  "version": "1.0.0",
+  "environments": [
+    {
+      "id": "station",
+      "name": "Orbital Station (LEO)",
+      "comm_delay_label": "Real-time (<2s)",
+      "autonomous_escalation": false,
+      "escalation_note": "Real-time telemetry link active. Coordinate with Flight Surgeon on ground loop for persistent watch items or urgent alerts."
+    },
+    {
+      "id": "transit",
+      "name": "Deep Space Transit",
+      "comm_delay_label": "5-20 min one-way",
+      "autonomous_escalation": true,
+      "escalation_note": "Delayed Earth communication (up to 20 min one-way). Execute onboard Crew Medical Officer protocol immediately while transmitting telemetry."
+    },
+    {
+      "id": "lunar_base",
+      "name": "Lunar Surface Base",
+      "comm_delay_label": "2.6s round-trip",
+      "autonomous_escalation": false,
+      "escalation_note": "Near-real-time lunar relay (2.6s). Log anomaly in medical binder and review with Artemis Flight Surgeon."
+    },
+    {
+      "id": "mars_base",
+      "name": "Mars Surface Habitat",
+      "comm_delay_label": "4-24 min one-way",
+      "autonomous_escalation": true,
+      "escalation_note": "High Earth latency (up to 48 min round-trip). Begin autonomous medical countermeasures immediately and queue full packet for Earth review."
+    }
+  ],
+  "regions": [
+    {
+      "id": "neuro_ocular",
+      "name": "Neuro & Ocular (SANS)",
+      "subtitle": "Intracranial fluid shift, optic disc pressure & vestibular balance",
+      "hazard": "Gravity Fields & Spaceflight-Associated Neuro-ocular Syndrome"
+    },
+    {
+      "id": "cardiovascular",
+      "name": "Cardiovascular",
+      "subtitle": "Vascular tone, resting heart rate & oxygen saturation",
+      "hazard": "Cardiovascular Adaptations & EVA Hypoxia Risk"
+    },
+    {
+      "id": "metabolic",
+      "name": "Metabolic & Nutrition",
+      "subtitle": "Glycemic stability, body mass preservation & nutritional intake",
+      "hazard": "Inadequate Food, Nutrition & Energy Balance"
+    },
+    {
+      "id": "musculoskeletal",
+      "name": "Musculoskeletal",
+      "subtitle": "Resistive loading compliance & decompression joint comfort",
+      "hazard": "Bone Density Loss, Muscle Atrophy & Decompression"
+    },
+    {
+      "id": "behavioral_sleep",
+      "name": "Behavioral & Sleep",
+      "subtitle": "Circadian alignment, restorative sleep & mood resilience",
+      "hazard": "Isolation, Confinement & Irregular Schedules"
+    },
+    {
+      "id": "immune_radiation",
+      "name": "Immune & Radiation",
+      "subtitle": "Cumulative ionizing exposure, fever & viral reactivation",
+      "hazard": "Space Radiation & Altered Immune Responses"
+    }
+  ],
+  "indicators": [
+    {
+      "id": "blood_pressure",
+      "name": "Blood Pressure",
+      "region_id": "cardiovascular",
+      "cadence": "daily",
+      "eval_mode": "single",
+      "unit": "mmHg",
+      "description": "Brachial systolic and diastolic pressure measured seated or tethered at rest.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Systolic", "unit": "mmHg", "min": 70, "max": 220, "decimals": 0, "placeholder": "118" },
+          { "key": "value2", "label": "Diastolic", "unit": "mmHg", "min": 40, "max": 140, "decimals": 0, "placeholder": "76" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 90 },
+        { "status": "alert", "gte": 140 },
+        { "status": "watch", "gte": 90, "lt": 100 },
+        { "status": "watch", "gte": 130, "lt": 140 },
+        { "status": "normal", "gte": 100, "lt": 130 }
+      ],
+      "bands2": [
+        { "status": "alert", "lt": 60 },
+        { "status": "alert", "gte": 90 },
+        { "status": "watch", "gte": 85, "lt": 90 },
+        { "status": "normal", "gte": 60, "lt": 85 }
+      ],
+      "messages": {
+        "normal": "Blood pressure is within healthy mission bounds.",
+        "watch": "Blood pressure is trending outside optimal range; recheck after 15 minutes of rest.",
+        "alert": "Blood pressure is in an urgent cardiovascular threshold band."
+      },
+      "actions": {
+        "watch": ["Repeat seated resting blood pressure in 15 min", "Verify hydration and electrolyte intake"],
+        "alert": ["Pause strenuous EVA/exercise and rest immediately", "Repeat reading twice 5 min apart and notify Crew Medical Officer"]
+      }
+    },
+    {
+      "id": "heart_rate",
+      "name": "Resting Heart Rate",
+      "region_id": "cardiovascular",
+      "cadence": "daily",
+      "eval_mode": "single",
+      "unit": "bpm",
+      "description": "Morning resting pulse rate prior to resistive exercise or caffeine.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Heart Rate", "unit": "bpm", "min": 35, "max": 200, "decimals": 0, "placeholder": "66" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 45 },
+        { "status": "alert", "gte": 110 },
+        { "status": "watch", "gte": 45, "lt": 52 },
+        { "status": "watch", "gte": 95, "lt": 110 },
+        { "status": "normal", "gte": 52, "lt": 95 }
+      ],
+      "messages": {
+        "normal": "Resting heart rate reflects stable autonomic conditioning.",
+        "watch": "Resting heart rate is mildly outside baseline conditioning range.",
+        "alert": "Resting heart rate indicates significant cardiac or orthostatic strain."
+      },
+      "actions": {
+        "watch": ["Hydrate with 500 mL electrolyte solution", "Check orthostatic tolerance before high-load tasks"],
+        "alert": ["Record 12-lead/portable ECG strip immediately", "Suspend vigorous exercise until evaluated"]
+      }
+    },
+    {
+      "id": "spo2",
+      "name": "Blood Oxygen (SpO2)",
+      "region_id": "cardiovascular",
+      "cadence": "daily",
+      "eval_mode": "single",
+      "unit": "%",
+      "description": "Peripheral capillary oxygen saturation via pulse oximeter, critical during suit pre-breathe.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "SpO2", "unit": "%", "min": 70, "max": 100, "decimals": 0, "placeholder": "98" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 92 },
+        { "status": "watch", "gte": 92, "lt": 95 },
+        { "status": "normal", "gte": 95, "lt": 101 }
+      ],
+      "messages": {
+        "normal": "Oxygen saturation is normal for cabin and pre-breathe operations.",
+        "watch": "Mild desaturation detected; verify cabin ppO2 and sensor fit.",
+        "alert": "Hypoxia threshold breached; immediate oxygen and cabin atmosphere check required."
+      },
+      "actions": {
+        "watch": ["Warm finger and re-seat pulse oximeter sensor", "Check cabin O2 and CO2 partial pressure scrubbers"],
+        "alert": ["Administer supplemental O2 per cabin emergency protocol", "Verify cabin pressure and CO2 scrubber telemetry immediately"]
+      }
+    },
+    {
+      "id": "blood_glucose",
+      "name": "Blood Glucose",
+      "region_id": "metabolic",
+      "cadence": "daily",
+      "eval_mode": "single",
+      "unit": "mg/dL",
+      "description": "Fasting or pre-meal capillary blood glucose concentration.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Glucose", "unit": "mg/dL", "min": 40, "max": 400, "decimals": 0, "placeholder": "92" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 65 },
+        { "status": "alert", "gte": 180 },
+        { "status": "watch", "gte": 65, "lt": 75 },
+        { "status": "watch", "gte": 126, "lt": 180 },
+        { "status": "normal", "gte": 75, "lt": 126 }
+      ],
+      "messages": {
+        "normal": "Blood glucose is balanced within target metabolic range.",
+        "watch": "Glucose is mildly outside target fasting range; review meal timing.",
+        "alert": "Blood glucose is in a critical hypo/hyperglycemic threshold."
+      },
+      "actions": {
+        "watch": ["Log timing relative to last meal and recheck before next shift", "Ensure balanced carbohydrate and protein intake"],
+        "alert": ["If <65 mg/dL, consume 15g fast-acting carbohydrates and recheck in 15 min", "Avoid solo operations or EVA until glucose stabilizes"]
+      }
+    },
+    {
+      "id": "body_mass",
+      "name": "Body Mass",
+      "region_id": "metabolic",
+      "cadence": "weekly",
+      "eval_mode": "baseline_pct",
+      "unit": "kg",
+      "description": "Weekly orbital/planetary mass measurement compared against pre-flight baseline.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Body Mass", "unit": "kg", "min": 40, "max": 140, "decimals": 1, "placeholder": "74.0" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": -5 },
+        { "status": "alert", "gte": 5 },
+        { "status": "watch", "gte": -5, "lt": -3 },
+        { "status": "watch", "gte": 3, "lt": 5 },
+        { "status": "normal", "gte": -3, "lt": 3 }
+      ],
+      "messages": {
+        "normal": "Body mass remains within ±3% of pre-flight baseline.",
+        "watch": "Body mass has shifted 3-5% from pre-flight baseline.",
+        "alert": "Body mass has deviated >=5% from pre-flight baseline, risking lean mass loss."
+      },
+      "actions": {
+        "watch": ["Audit daily caloric and protein intake over the last 7 days", "Add nutrient-dense supplemental rations"],
+        "alert": ["Initiate structured nutrition recovery plan with higher caloric target", "Review food acceptability and hydration logs"]
+      }
+    },
+    {
+      "id": "intraocular_pressure",
+      "name": "Intraocular Pressure",
+      "region_id": "neuro_ocular",
+      "cadence": "weekly",
+      "eval_mode": "single",
+      "unit": "mmHg",
+      "description": "Weekly tonometry reading to screen for Spaceflight-Associated Neuro-ocular Syndrome (SANS).",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "IOP", "unit": "mmHg", "min": 5, "max": 45, "decimals": 1, "placeholder": "15.5" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "gte": 24 },
+        { "status": "watch", "gte": 20, "lt": 24 },
+        { "status": "normal", "gte": 5, "lt": 20 }
+      ],
+      "messages": {
+        "normal": "Intraocular pressure is within normal ocular perfusion limits.",
+        "watch": "Elevated intraocular pressure trend; monitor for visual shifts.",
+        "alert": "High intraocular pressure requiring immediate SANS imaging protocol."
+      },
+      "actions": {
+        "watch": ["Schedule repeat tonometry and Amsler grid check in 24 hours", "Review B-complex vitamin supplementation compliance"],
+        "alert": ["Perform OCT / fundoscope retinal scan immediately", "Consider thigh-cuff or lower-body negative pressure countermeasures per protocol"]
+      }
+    },
+    {
+      "id": "exercise_minutes",
+      "name": "Resistive & Aerobic Exercise",
+      "region_id": "musculoskeletal",
+      "cadence": "daily",
+      "eval_mode": "mean_7d",
+      "unit": "min",
+      "description": "Daily resistive (ARED) and aerobic exercise duration evaluated on a 7-day rolling mean.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Duration", "unit": "min", "min": 0, "max": 240, "decimals": 0, "placeholder": "105" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 45 },
+        { "status": "watch", "gte": 45, "lt": 90 },
+        { "status": "normal", "gte": 90, "lt": 241 }
+      ],
+      "messages": {
+        "normal": "7-day exercise volume meets bone and muscle countermeasure targets.",
+        "watch": "7-day average exercise duration is below optimal 90 min/day target.",
+        "alert": "7-day exercise deficit risks accelerated bone density and muscle loss."
+      },
+      "actions": {
+        "watch": ["Schedule full resistive + cycle ergometer block in next shift", "Verify Vitamin D and calcium intake"],
+        "alert": ["Prioritize daily resistive countermeasure session immediately", "Adjust mission timeline to protect mandatory exercise blocks"]
+      }
+    },
+    {
+      "id": "sleep_hours",
+      "name": "Daily Sleep",
+      "region_id": "behavioral_sleep",
+      "cadence": "daily",
+      "eval_mode": "mean_7d",
+      "unit": "hrs",
+      "description": "Restorative sleep hours logged from actigraphy or sleep diary, evaluated on 7-day mean.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Sleep", "unit": "hrs", "min": 0, "max": 16, "decimals": 1, "placeholder": "7.3" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 5.5 },
+        { "status": "watch", "gte": 5.5, "lt": 6.5 },
+        { "status": "watch", "gte": 10.0 },
+        { "status": "normal", "gte": 6.5, "lt": 10.0 }
+      ],
+      "messages": {
+        "normal": "7-day sleep average supports circadian stability and cognitive readiness.",
+        "watch": "Sleep duration is drifting from the 6.5-9.5 hr restorative window.",
+        "alert": "Chronic sleep deficit detected (<5.5 hrs 7-day mean), impairing mission safety."
+      },
+      "actions": {
+        "watch": ["Enforce blue-light hygiene 90 min before sleep cycle", "Review cabin noise and thermal comfort"],
+        "alert": ["Defer non-critical high-risk operations and schedule recovery sleep", "Use circadian lighting protocol and alert Crew Medical Officer"]
+      }
+    },
+    {
+      "id": "mood_score",
+      "name": "Mood & Stress Resilience",
+      "region_id": "behavioral_sleep",
+      "cadence": "daily",
+      "eval_mode": "mean_7d",
+      "unit": "/10",
+      "description": "Self-assessed behavioral well-being score (1 = severe distress, 10 = optimal morale).",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Mood Score", "unit": "/10", "min": 1, "max": 10, "decimals": 0, "placeholder": "8" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 4 },
+        { "status": "watch", "gte": 4, "lt": 6 },
+        { "status": "normal", "gte": 6, "lt": 11 }
+      ],
+      "messages": {
+        "normal": "Behavioral mood and isolation resilience are steady.",
+        "watch": "Mild behavioral strain detected over the past 7 days.",
+        "alert": "Significant behavioral distress trend requiring supportive intervention."
+      },
+      "actions": {
+        "watch": ["Schedule private family/ground audio-video conference", "Take structured leisure or VEGGIE habitat care break"],
+        "alert": ["Initiate private behavioral health check-in with Crew Medical Officer", "Redistribute workload and prioritize restorative crew support"]
+      }
+    },
+    {
+      "id": "body_temp",
+      "name": "Core Body Temperature",
+      "region_id": "immune_radiation",
+      "cadence": "daily",
+      "eval_mode": "single",
+      "unit": "°C",
+      "description": "Tympanic or oral body temperature to detect early infection or thermal strain.",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Temperature", "unit": "°C", "min": 34, "max": 42, "decimals": 1, "placeholder": "36.7" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "lt": 35.5 },
+        { "status": "alert", "gte": 38.0 },
+        { "status": "watch", "gte": 35.5, "lt": 36.1 },
+        { "status": "watch", "gte": 37.5, "lt": 38.0 },
+        { "status": "normal", "gte": 36.1, "lt": 37.5 }
+      ],
+      "messages": {
+        "normal": "Body temperature is within normal thermoregulatory range.",
+        "watch": "Borderline temperature shift; monitor for immune or thermal triggers.",
+        "alert": "Febrile or hypothermic threshold reached; isolate source and assess crew."
+      },
+      "actions": {
+        "watch": ["Recheck temperature in 4 hours and verify cabin thermal loop", "Increase fluid intake and log any emerging symptoms"],
+        "alert": ["Collect saliva/swab sample for immune and microbial screening", "Begin fever/hypothermia protocol and restrict close crew contact"]
+      }
+    },
+    {
+      "id": "radiation_dose",
+      "name": "Weekly Radiation Dose",
+      "region_id": "immune_radiation",
+      "cadence": "weekly",
+      "eval_mode": "single",
+      "unit": "mSv/wk",
+      "description": "Personal neutron/ionizing dosimeter reading (EVARM / CANS spectrometer).",
+      "input": {
+        "fields": [
+          { "key": "value", "label": "Dose", "unit": "mSv/wk", "min": 0, "max": 50, "decimals": 2, "placeholder": "2.40" }
+        ]
+      },
+      "bands": [
+        { "status": "alert", "gte": 10.0 },
+        { "status": "watch", "gte": 5.0, "lt": 10.0 },
+        { "status": "normal", "gte": 0.0, "lt": 5.0 }
+      ],
+      "messages": {
+        "normal": "Weekly ionizing and neutron dose is within nominal mission shielding limits.",
+        "watch": "Elevated weekly radiation exposure; monitor solar particle alerts.",
+        "alert": "High radiation exposure threshold exceeded; shelter protocol required."
+      },
+      "actions": {
+        "watch": ["Inspect personal dosimeter placement and cabin water-wall shielding", "Defer non-essential unshielded cupola/EVA time"],
+        "alert": ["Move to storm-shelter shielded habitat volume immediately", "Log cumulative career dose and notify Radiation Safety Officer"]
+      }
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "visual_blur",
+      "name": "Near-Vision Blur / Visual Shift",
+      "region_id": "neuro_ocular",
+      "severities": { "1": "watch", "2": "alert", "3": "alert" },
+      "description": "Hyperopic shift or floaters linked to cephalad fluid shift (SANS)."
+    },
+    {
+      "id": "headache",
+      "name": "Persistent Headache / Head Fullness",
+      "region_id": "neuro_ocular",
+      "severities": { "1": "watch", "2": "alert", "3": "alert" },
+      "description": "Frontal pressure or persistent headache in microgravity or high CO2."
+    },
+    {
+      "id": "dizziness",
+      "name": "Vestibular Dizziness / Gait Shift",
+      "region_id": "neuro_ocular",
+      "severities": { "1": "watch", "2": "alert", "3": "alert" },
+      "description": "Motion sickness or sensorimotor coordination difficulty during gravity transitions."
+    },
+    {
+      "id": "skin_rash",
+      "name": "Skin Rash / Viral Reactivation",
+      "region_id": "immune_radiation",
+      "severities": { "1": "watch", "2": "alert", "3": "alert" },
+      "description": "Dermatitis or latent herpesvirus reactivation driven by spaceflight immune changes."
+    },
+    {
+      "id": "joint_pain",
+      "name": "Joint / Decompression Ache",
+      "region_id": "musculoskeletal",
+      "severities": { "1": "watch", "2": "alert", "3": "alert" },
+      "description": "Deep joint pain following EVA pressure transitions or heavy resistive loading."
+    },
+    {
+      "id": "fatigue",
+      "name": "Persistent Fatigue / Lethargy",
+      "region_id": "behavioral_sleep",
+      "severities": { "1": "normal", "2": "watch", "3": "alert" },
+      "description": "Cumulative tiredness affecting reaction time and checklist accuracy."
+    },
+    {
+      "id": "appetite_loss",
+      "name": "Appetite Loss / Food Fatigue",
+      "region_id": "metabolic",
+      "severities": { "1": "normal", "2": "watch", "3": "alert" },
+      "description": "Reduced food acceptability risking caloric deficit and micronutrient loss."
+    }
+  ],
+  "badges": [
+    {
+      "id": "first_checkin",
+      "name": "First Telemetry Log",
+      "description": "Complete your first health check-in.",
+      "points": 25
+    },
+    {
+      "id": "streak_3",
+      "name": "3-Day Orbit Streak",
+      "description": "Log health check-ins on 3 consecutive UTC days.",
+      "points": 25
+    },
+    {
+      "id": "streak_7",
+      "name": "7-Day Mission Cadence",
+      "description": "Maintain a 7-day consecutive check-in streak.",
+      "points": 25
+    },
+    {
+      "id": "streak_30",
+      "name": "30-Day Deep Space Discipline",
+      "description": "Maintain a 30-day consecutive check-in streak.",
+      "points": 25
+    },
+    {
+      "id": "full_panel",
+      "name": "Full System Sweep",
+      "description": "Measure every active indicator in the catalog at least once.",
+      "points": 25
+    },
+    {
+      "id": "weekly_guardian",
+      "name": "Weekly Countermeasure Check",
+      "description": "Log all weekly indicators (Body Mass, IOP, Radiation Dose).",
+      "points": 25
+    },
+    {
+      "id": "symptom_clear",
+      "name": "Clean Bill of Health",
+      "description": "Review and clear active symptoms during a check-in.",
+      "points": 25
+    }
+  ],
+  "levels": [
+    { "level": 1, "name": "Payload Specialist", "min_points": 0 },
+    { "level": 2, "name": "Flight Engineer", "min_points": 150 },
+    { "level": 3, "name": "Mission Specialist", "min_points": 400 },
+    { "level": 4, "name": "Crew Medical Officer", "min_points": 750 },
+    { "level": 5, "name": "Expedition Commander", "min_points": 1200 }
+  ]
+}
